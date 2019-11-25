@@ -10,15 +10,15 @@ import (
 )
 
 func main() {
+	if len(os.Args) > 1 {
+		adapter.Usage()
+		os.Exit(0)
+	}
+
 	cfg, err := adapter.LoadConfig()
 	if err != nil {
 		logger.Error.Printf("Failed to load config: %v", err)
 		os.Exit(1)
-	}
-
-	if len(os.Args) > 1 {
-		adapter.Usage()
-		os.Exit(0)
 	}
 
 	logger.Info.Printf("Letarette.sql starting, using %q driver", cfg.Db.Driver)
