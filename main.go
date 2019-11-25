@@ -21,6 +21,8 @@ func main() {
 		os.Exit(0)
 	}
 
+	logger.Info.Printf("Letarette.sql starting, using %q driver", cfg.Db.Driver)
+
 	errorHandler := func(err error) {
 		logger.Error.Printf("Adapter error: %v", err)
 	}
@@ -35,6 +37,7 @@ func main() {
 
 	select {
 	case <-signals:
+		logger.Info.Printf("Closing down")
 		a.Close()
 	}
 }

@@ -88,8 +88,11 @@ func New(cfg Config, errorHandler func(error)) (Adapter, error) {
 }
 
 func (a *adapter) handleIndexRequest(req protocol.IndexUpdateRequest) (protocol.IndexUpdate, error) {
+	if req.Space != a.space {
+		return protocol.IndexUpdate{}, nil
+	}
 	// select id, updated
-	rows, err := a.db.QueryContext(a.ctx, a.indexRequestSQL, req.Space, req.AfterDocument, req.FromTime.UnixNano(), req.Limit)
+	rows, err := a.db.QueryContext(a.ctx, a.indexRequestSQL, req.AfterDocument, req.FromTime.UnixNano(), req.Limit)
 	if err != nil {
 		return protocol.IndexUpdate{}, fmt.Errorf("Failed to query DB: %w", err)
 	}
@@ -114,8 +117,11 @@ func (a *adapter) handleIndexRequest(req protocol.IndexUpdateRequest) (protocol.
 }
 
 func (a *adapter) handleDocumentRequest(req protocol.DocumentRequest) (protocol.DocumentUpdate, error) {
+	if req.Space != a.space {
+		return protocol.DocumentUpdate{}, nil
+	}
 	// select id, updated, title, text, alive
-	rows, err := a.db.QueryContext(a.ctx, a.documentRequestSQL, req.Space, req.Wanted)
+	rows, err := a.db.QueryContext(a.ctx, a.documentRequestSQL, req.Wanted)
 	if err != nil {
 		return protocol.DocumentUpdate{}, fmt.Errorf("Failed to query DB: %w", err)
 	}
