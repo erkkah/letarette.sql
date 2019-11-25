@@ -1,6 +1,9 @@
 package adapter
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/kelseyhightower/envconfig"
 )
 
@@ -11,15 +14,15 @@ type Config struct {
 		Topic string `default:"leta"`
 	}
 	Index struct {
-		Space string
+		Space string `default:"docs"`
 	}
 	Db struct {
-		Driver     string
+		Driver     string `required:"true"`
 		Connection string
 	}
 	SQL struct {
-		IndexSQLFile    string
-		DocumentSQLFile string
+		IndexSQLFile    string `default:"indexrequest.sql"`
+		DocumentSQLFile string `default:"documentrequest.sql"`
 	}
 }
 
@@ -34,7 +37,27 @@ func LoadConfig() (cfg Config, err error) {
 	}
 
 	err = envconfig.Process(prefix, &cfg)
+	if err != nil {
+		return
+	}
+
+	if !validateDriver(cfg.Db.Driver) {
+		err = fmt.Errorf("No such driver: %q, supported drivers: %s",
+			cfg.Db.Driver,
+			strings.Join(getLoadedDrivers(), ", "),
+		)
+	}
+
 	return
+}
+
+func validateDriver(driver string) bool {
+	for _, loaded := range getLoadedDrivers() {
+		if loaded == driver {
+			return true
+		}
+	}
+	return false
 }
 
 // Usage prints usage help to stdout
