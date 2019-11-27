@@ -92,7 +92,7 @@ func (a *adapter) handleIndexRequest(req protocol.IndexUpdateRequest) (protocol.
 		return protocol.IndexUpdate{}, nil
 	}
 	// select id, updated
-	rows, err := a.db.QueryContext(a.ctx, a.indexRequestSQL, req.AfterDocument, req.FromTime.UnixNano(), req.Limit)
+	rows, err := a.db.QueryxContext(a.ctx, a.indexRequestSQL, req.AfterDocument, req.FromTime.UnixNano(), req.Limit)
 	if err != nil {
 		return protocol.IndexUpdate{}, fmt.Errorf("Failed to query DB: %w", err)
 	}
@@ -104,7 +104,7 @@ func (a *adapter) handleIndexRequest(req protocol.IndexUpdateRequest) (protocol.
 			ID      string
 			Updated int64
 		}{}
-		err = rows.Scan(&rowData)
+		err = rows.StructScan(&rowData)
 		if err != nil {
 			return protocol.IndexUpdate{}, fmt.Errorf("Failed to scan row: %w", err)
 		}
@@ -121,7 +121,11 @@ func (a *adapter) handleDocumentRequest(req protocol.DocumentRequest) (protocol.
 		return protocol.DocumentUpdate{}, nil
 	}
 	// select id, updated, title, text, alive
-	rows, err := a.db.QueryContext(a.ctx, a.documentRequestSQL, req.Wanted)
+	expanded, args, err := sqlx.In(a.documentRequestSQL, req.Wanted)
+	if err != nil {
+		return protocol.DocumentUpdate{}, fmt.Errorf(`Failed to expand "in" statement: %w`, err)
+	}
+	rows, err := a.db.QueryxContext(a.ctx, expanded, args...)
 	if err != nil {
 		return protocol.DocumentUpdate{}, fmt.Errorf("Failed to query DB: %w", err)
 	}
@@ -134,10 +138,10 @@ func (a *adapter) handleDocumentRequest(req protocol.DocumentRequest) (protocol.
 			ID      string
 			Updated int64
 			Title   string
-			Text    string
+			Txt     string
 			Alive   bool
 		}{}
-		err = rows.Scan(&rowData)
+		err = rows.StructScan(&rowData)
 		if err != nil {
 			return protocol.DocumentUpdate{}, fmt.Errorf("Failed to scan row: %w", err)
 		}
@@ -145,7 +149,7 @@ func (a *adapter) handleDocumentRequest(req protocol.DocumentRequest) (protocol.
 			ID:      protocol.DocumentID(rowData.ID),
 			Updated: time.Unix(0, rowData.Updated),
 			Title:   rowData.Title,
-			Text:    rowData.Text,
+			Text:    rowData.Txt,
 			Alive:   rowData.Alive,
 		})
 	}
