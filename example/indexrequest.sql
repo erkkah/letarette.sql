@@ -20,7 +20,8 @@ select
 from
 	docs join documentState join params
 where
-	id > afterID and updated >= fromTimeNanos
+    (updated = fromTimeNanos and id > afterID)
+	or updated > fromTimeNanos
 order by
 	updated, id
 limit ?
