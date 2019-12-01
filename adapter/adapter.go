@@ -20,8 +20,6 @@ type Adapter interface {
 
 type adapter struct {
 	manager            client.DocumentManager
-	ctx                context.Context
-	cancel             context.CancelFunc
 	db                 *sqlx.DB
 	indexRequestSQL    string
 	documentRequestSQL string
@@ -29,7 +27,6 @@ type adapter struct {
 }
 
 func (a *adapter) Close() {
-	a.cancel()
 	a.manager.Close()
 }
 
@@ -45,18 +42,16 @@ func New(cfg Config, errorHandler func(error)) (Adapter, error) {
 		return nil, fmt.Errorf("Failed to start document manager: %w", err)
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	db, err := sqlx.ConnectContext(ctx, cfg.Db.Driver, cfg.Db.Connection)
+	cancel()
+
 	if err != nil {
-		cancel()
 		return nil, fmt.Errorf("DB connection failed: %w", err)
 	}
 
 	self := &adapter{
 		manager: mgr,
-		ctx:     ctx,
-		cancel:  cancel,
 		db:      db,
 		space:   cfg.Index.Space,
 	}
@@ -73,12 +68,12 @@ func New(cfg Config, errorHandler func(error)) (Adapter, error) {
 	}
 	self.documentRequestSQL = string(bytes)
 
-	indexHandler := func(req protocol.IndexUpdateRequest) (protocol.IndexUpdate, error) {
-		return self.handleIndexRequest(req)
+	indexHandler := func(ctx context.Context, req protocol.IndexUpdateRequest) (protocol.IndexUpdate, error) {
+		return self.handleIndexRequest(ctx, req)
 	}
 
-	documentHandler := func(req protocol.DocumentRequest) (protocol.DocumentUpdate, error) {
-		return self.handleDocumentRequest(req)
+	documentHandler := func(ctx context.Context, req protocol.DocumentRequest) (protocol.DocumentUpdate, error) {
+		return self.handleDocumentRequest(ctx, req)
 	}
 
 	mgr.StartIndexRequestHandler(indexHandler)
@@ -87,12 +82,12 @@ func New(cfg Config, errorHandler func(error)) (Adapter, error) {
 	return self, nil
 }
 
-func (a *adapter) handleIndexRequest(req protocol.IndexUpdateRequest) (protocol.IndexUpdate, error) {
+func (a *adapter) handleIndexRequest(ctx context.Context, req protocol.IndexUpdateRequest) (protocol.IndexUpdate, error) {
 	if req.Space != a.space {
 		return protocol.IndexUpdate{}, nil
 	}
 	// select id, updated
-	rows, err := a.db.QueryxContext(a.ctx, a.indexRequestSQL, req.AfterDocument, req.FromTime.UnixNano(), req.Limit)
+	rows, err := a.db.QueryxContext(ctx, a.indexRequestSQL, req.AfterDocument, req.FromTime.UnixNano(), req.Limit)
 	if err != nil {
 		return protocol.IndexUpdate{}, fmt.Errorf("Failed to query DB: %w", err)
 	}
@@ -116,7 +111,7 @@ func (a *adapter) handleIndexRequest(req protocol.IndexUpdateRequest) (protocol.
 	return result, nil
 }
 
-func (a *adapter) handleDocumentRequest(req protocol.DocumentRequest) (protocol.DocumentUpdate, error) {
+func (a *adapter) handleDocumentRequest(ctx context.Context, req protocol.DocumentRequest) (protocol.DocumentUpdate, error) {
 	if req.Space != a.space {
 		return protocol.DocumentUpdate{}, nil
 	}
@@ -125,7 +120,7 @@ func (a *adapter) handleDocumentRequest(req protocol.DocumentRequest) (protocol.
 	if err != nil {
 		return protocol.DocumentUpdate{}, fmt.Errorf(`Failed to expand "in" statement: %w`, err)
 	}
-	rows, err := a.db.QueryxContext(a.ctx, expanded, args...)
+	rows, err := a.db.QueryxContext(ctx, expanded, args...)
 	if err != nil {
 		return protocol.DocumentUpdate{}, fmt.Errorf("Failed to query DB: %w", err)
 	}
