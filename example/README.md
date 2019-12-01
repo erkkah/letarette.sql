@@ -40,7 +40,7 @@ The JSON file is converted from `pg24384.txt`, originally fetched from the Guten
 Now that we have a document database in place, `lrsql` can be started with the SQLite settings like this:
 
 ```sh
-LRSQL_DB_DRIVER=sqlite3 LRSQL_DB_CONNECTION=articles.db lrsql
+LRSQL_DB_DRIVER=sqlite3 LRSQL_DB_CONNECTION=recipies.db lrsql
 ```
 
 If there is a **Letarette** service connected to the default NATS server running on the local machine, it should start indexing the "docs" space with articles from our little database.
