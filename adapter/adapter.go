@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/erkkah/letarette/pkg/client"
+	"github.com/erkkah/letarette/pkg/logger"
 	"github.com/erkkah/letarette/pkg/protocol"
 	"github.com/jmoiron/sqlx"
 )
@@ -49,6 +50,8 @@ func New(cfg Config, errorHandler func(error)) (Adapter, error) {
 	if err != nil {
 		return nil, fmt.Errorf("DB connection failed: %w", err)
 	}
+
+	logger.Info.Printf("Connected to %q DB at %q", cfg.Db.Driver, cfg.Db.Connection)
 
 	self := &adapter{
 		manager: mgr,
@@ -108,6 +111,7 @@ func (a *adapter) handleIndexRequest(ctx context.Context, req protocol.IndexUpda
 			Updated: time.Unix(0, rowData.Updated),
 		})
 	}
+	logger.Debug.Printf("Returning %d updates to indexer", len(result.Updates))
 	return result, nil
 }
 
@@ -148,5 +152,6 @@ func (a *adapter) handleDocumentRequest(ctx context.Context, req protocol.Docume
 			Alive:   rowData.Alive,
 		})
 	}
+	logger.Debug.Printf("Sending %d documents to indexer", len(result.Documents))
 	return result, nil
 }
