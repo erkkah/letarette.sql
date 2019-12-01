@@ -158,7 +158,7 @@ func (a *adapter) handleIndexRequest(ctx context.Context, req protocol.IndexUpda
 	for rows.Next() {
 		rowData := struct {
 			ID      string
-			Updated int64
+			Updated int64 `db:"updatedNanos"`
 		}{}
 		err = rows.StructScan(&rowData)
 		if err != nil {
@@ -196,7 +196,7 @@ func (a *adapter) handleDocumentRequest(ctx context.Context, req protocol.Docume
 	for rows.Next() {
 		rowData := struct {
 			ID      string
-			Updated int64
+			Updated int64 `db:"updatedNanos"`
 			Title   string
 			Txt     string
 			Alive   bool
