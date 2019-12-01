@@ -9,7 +9,6 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lib/pq v1.0.0
 	github.com/mattn/go-sqlite3 v1.10.0
-	github.com/segmentio/go-athena v0.0.0-20181208004937-dfa5f1818930
 )
 
 replace github.com/erkkah/letarette v1.0.0 => ../letarette

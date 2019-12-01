@@ -12,7 +12,6 @@ The following SQL drivers are supported:
 * [MySQL](https://github.com/go-sql-driver/mysql/)
 * [SQLite](github.com/mattn/go-sqlite3)
 * [MS SQL Server](https://github.com/denisenkom/go-mssqldb)
-* [Athena](github.com/segmentio/go-athena)
 
 ### Getting started
 
@@ -57,11 +56,8 @@ The current list of driver build tags is:
 * mysql
 * sqlite3
 * mssql
-* athena
 
 For example, to build a binary with "postgres" and "mysql" support:
 ```
 go build -tags "postgres,mysql"
 ```
-
-

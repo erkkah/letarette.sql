@@ -64,4 +64,5 @@ func validateDriver(driver string) bool {
 func Usage() {
 	var cfg Config
 	envconfig.Usage(prefix, &cfg)
+	fmt.Printf("Supported drivers: %s", strings.Join(getLoadedDrivers(), ", "))
 }
