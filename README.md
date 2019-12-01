@@ -76,7 +76,7 @@ The current list of driver build tags is:
 * postgres
 * mysql
 * sqlite3
-* mssql
+* sqlserver
 
 For example, to build a binary with "postgres" and "mysql" support:
 ```
