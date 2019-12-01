@@ -26,10 +26,14 @@ A test database can created by the `loader.go` program, which loads the articles
 
 Each article will be given an auto-incremented ID.
 
-For example, to load at most 1000 articles from `myarticles.json.gz` to the database `articles.db`, run:
+To try if out, load 365 recipies from the great book "365 Luncheon Dishes - A Luncheon Dish for Every Day in the Year" to the database `recipies.db`: 
+
 ```sh
-go run loader.go -l 1000 articles.db myarticles.json.gz
+go run loader.go recipies.db pg24384.json
 ```
+
+The JSON file is converted from `pg24384.txt`, originally fetched from the Gutenberg Project at http://www.gutenberg.org/2/4/3/8/24384/.
+
 
 ### Running the SQL Document Manager
 
