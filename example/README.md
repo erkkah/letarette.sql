@@ -31,9 +31,9 @@ For example, to load at most 1000 articles from `myarticles.json.gz` to the data
 go run loader.go -l 1000 articles.db myarticles.json.gz
 ```
 
-### Running the SQL adapter
+### Running the SQL Document Manager
 
-Now that we have a document database in place, the adapter can be started with the SQLite settings like this:
+Now that we have a document database in place, `lrsql` can be started with the SQLite settings like this:
 
 ```sh
 LRSQL_DB_DRIVER=sqlite3 LRSQL_DB_CONNECTION=articles.db lrsql
