@@ -1,9 +1,13 @@
 -- Index update request
 --
--- bound arguments:
+-- bound parameters:
 --  afterDocument, fromTimeNanos, documentLimit
 -- returns:
---  id, updated
+--  id, updatedNanos
+--
+-- Explicitly specify binding order:
+-- @bind[afterDocument, fromTimeNanos, documentLimit]
+--
 
 with
 params as (
@@ -16,7 +20,7 @@ documentState as (
     and updated = fromTimeNanos
 )
 select
-	id, updated
+	id, updated as updatedNanos
 from
 	docs join documentState join params
 where
