@@ -15,7 +15,7 @@ The following SQL drivers are supported:
 
 ### Getting started
 
-The **letarette.sql** service, `lrsql`, needs to know how to connect to the SQL database, and where to find the queries that provides documents to the **Letarette** indexer.
+The **letarette.sql** service, `lrsql`, needs to know how to connect to the SQL database, and where to find the queries that provide documents to the **Letarette** indexer.
 
 To make the service connect to a PostgreSQL source, and use default values for the rest of the settings:
 ```sh
@@ -40,14 +40,14 @@ Running `lrsql` with any command-line argument will print out available settings
 
 ### The two queries
 
-The **Letarette** indexer update cycle has two separate steps, first it fetches an "interest list" of documents that have updated since the current index position (index request) then it fetches the documents on that list (document request).
+The **Letarette** indexer update cycle has two separate steps, first it fetches an "interest list" of documents that are newer than the current index position (index request), and then it fetches the documents on that list (document request).
 
 Timestamps are UTC - referenced UNIX epoch nanoseconds.
 
 #### Index requests
 
-The current index position is a combination of a document ID and when that document was last updated.
-To handle the situation where the index position document has updated since it was last fetched, *index request* queries need to follow a strict document ordering. This is best handled by sorting primarily on *update timestamp* and secondarily on *document ID* and handling the case where the *update timestamp* is unchanged separately. See [indexrequest.sql](example/indexrequest.sql) from the example project.
+The current index position is a combination of a document ID and the *updated timestamp* of that document.
+To handle the situation where the index position document has been updated since it was last fetched, *index request* queries need to follow a strict document ordering. This is best handled by sorting primarily on *update timestamp* and secondarily on *document ID* and handling the case where the *update timestamp* is unchanged separately. See [indexrequest.sql](example/indexrequest.sql) from the example project.
 
 The index request query gets three bound parameters: `afterDocument` (string), `fromTimeNanos` (int64) and `documentLimit` (int) and should return rows of two columns: `id` (string) and `updatedNanos` (int64). The order of the bound parameters can optionally be changed by adding a special `@bind` comment:
 
@@ -64,7 +64,7 @@ The index request query gets three bound parameters: `afterDocument` (string), `
 
 #### Document requests
 
-Implementing the *document request* is even easier, since this only needs to retrieve the documents in a list of document IDs: [documentrequest.sql](example/documentrequest.sql). The single bound parameter will be replaced with a list of document IDs (string).
+Implementing the *document request* is even easier, since this only needs to retrieve all documents for a list of document IDs: [documentrequest.sql](example/documentrequest.sql). The single bound parameter will be replaced with a list of document IDs (string).
 
 The document request query should return rows of `id` (string), `updatedNanos` (int64), `title` (string), `txt` (string) and `alive` (bool).
 
