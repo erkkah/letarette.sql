@@ -4,8 +4,6 @@ This is an all-SQL Document Manager for the Letarette full-text search thingy.
 To connect a SQL-based primary document storage to Letarette, only two queries need to be supplied.
 Check the [example](./example) to see how basic they can be, given that the primary storage has a similar structure.
 
-The **letarette.sql** service is a single binary configured by environment variables.
-
 The following SQL drivers are supported:
 
 * [PostgreSQL](https://github.com/lib/pq)
@@ -27,6 +25,7 @@ export LRSQL_DB_CONNECTION="postgres://user:password@localhost/testdb?sslmode=ve
 Running `lrsql` with any command-line argument will print out available settings and their default values.
 
 ### Service configuration
+The **letarette.sql** service is configured by environment variables.
 
 |*Variable* |*Type* |*Description* |
 |---|---|---|
