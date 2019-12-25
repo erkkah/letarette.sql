@@ -38,9 +38,11 @@ func (a *adapter) Close() {
 // and the database, ready to start handling index requests.
 func New(cfg Config, errorHandler func(error)) (Adapter, error) {
 	mgr, err := client.StartDocumentManager(
-		cfg.Nats.URL,
+		strings.Join(cfg.Nats.URLS, ","),
 		client.WithTopic(cfg.Nats.Topic),
 		client.WithErrorHandler(errorHandler),
+		client.WithRootCAs(cfg.Nats.RootCAs...),
+		client.WithSeedFile(cfg.Nats.SeedFile),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to start document manager: %w", err)

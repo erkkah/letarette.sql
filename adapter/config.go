@@ -10,8 +10,10 @@ import (
 // Config holds the main configuration
 type Config struct {
 	Nats struct {
-		URL   string `default:"nats://localhost:4222"`
-		Topic string `default:"leta"`
+		URLS     []string `default:"nats://localhost:4222"`
+		SeedFile string
+		RootCAs  []string
+		Topic    string `default:"leta"`
 	}
 	Index struct {
 		Space string `default:"docs"`
