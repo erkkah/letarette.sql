@@ -38,7 +38,7 @@ func (a *adapter) Close() {
 // and the database, ready to start handling index requests.
 func New(cfg Config, errorHandler func(error)) (Adapter, error) {
 	mgr, err := client.StartDocumentManager(
-		strings.Join(cfg.Nats.URLS, ","),
+		cfg.Nats.URLS,
 		client.WithTopic(cfg.Nats.Topic),
 		client.WithErrorHandler(errorHandler),
 		client.WithRootCAs(cfg.Nats.RootCAs...),
