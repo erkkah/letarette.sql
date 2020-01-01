@@ -1,3 +1,6 @@
+[![GitHub release](https://img.shields.io/github/release/erkkah/letarette.sql.svg)](https://github.com/erkkah/letarette.sql/releases)
+[![Go Report Card](https://goreportcard.com/badge/github.com/erkkah/letarette.sql)](https://goreportcard.com/report/github.com/erkkah/letarette.sql)
+
 ## letarette.sql - SQL-based Letarette Document Manager
 
 This is an all-SQL Document Manager for the Letarette full-text search thingy.
