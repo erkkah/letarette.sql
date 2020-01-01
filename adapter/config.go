@@ -2,7 +2,9 @@ package adapter
 
 import (
 	"fmt"
+	"os"
 	"strings"
+	"text/tabwriter"
 
 	"github.com/kelseyhightower/envconfig"
 )
@@ -62,9 +64,20 @@ func validateDriver(driver string) bool {
 	return false
 }
 
+var usageFormat = fmt.Sprintf("{{$t:=\"\t\"}}letarette.sql\n%s (%s)\n", Tag, Revision) + `
+Configuration environment variables:
+
+VARIABLE{{$t}}TYPE{{$t}}DEFAULT
+========{{$t}}===={{$t}}=======
+LOG_LEVEL{{$t}}String{{$t}}INFO
+{{range .}}{{if usage_description . | eq "internal" | not}}{{usage_key .}}{{$t}}{{usage_type .}}{{$t}}{{usage_default .}}
+{{end}}{{end}}
+`
+
 // Usage prints usage help to stdout
 func Usage() {
 	var cfg Config
-	envconfig.Usage(prefix, &cfg)
-	fmt.Printf("\nSupported drivers: %s\n", strings.Join(getLoadedDrivers(), ", "))
+	tabs := tabwriter.NewWriter(os.Stdout, 1, 0, 4, ' ', 0)
+	envconfig.Usagef(prefix, &cfg, tabs, usageFormat)
+	fmt.Printf("Supported drivers: %s\n", strings.Join(getLoadedDrivers(), ", "))
 }
