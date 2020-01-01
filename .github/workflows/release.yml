@@ -103,6 +103,9 @@ jobs:
           name: changelog
           path: .
 
+      - name: Make executables executables
+        run: chmod a+x linux/* macos/*
+
       - name: Pack release
         id: pack-release
         run: tar czf $ARCHIVE linux macos licenses CHANGELOG.md
