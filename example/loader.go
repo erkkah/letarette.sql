@@ -106,6 +106,9 @@ func newLoader() (*loader, error) {
 	}
 
 	inserter, err := tx.Preparex("insert into docs (title, txt, updated) values (?, ?, ?)")
+	if err != nil {
+		return nil, err
+	}
 
 	return &loader{
 		db:       db,
