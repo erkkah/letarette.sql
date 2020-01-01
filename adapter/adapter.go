@@ -15,8 +15,8 @@ import (
 )
 
 // Adapter is a bridge between Letarette and a SQL database,
-// implementing a Letarette Document Manager for one Letarette space
-// by adding two SQL queries.
+// implementing a Letarette Document Manager for a Letarette space
+// using two SQL queries.
 type Adapter interface {
 	Close()
 }

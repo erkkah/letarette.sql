@@ -11,6 +11,4 @@ require (
 	github.com/mattn/go-sqlite3 v1.10.0
 )
 
-replace github.com/erkkah/letarette v0.1.0 => ../letarette
-
 go 1.13

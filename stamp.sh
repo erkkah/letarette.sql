@@ -6,6 +6,7 @@ if output=$(git status --porcelain) && [ -z "$output" ]; then
     rev=${sha:0:7}
 else
     # dirty
+    echo "Dirty repo: $output"
     rev="dev"
 fi
 

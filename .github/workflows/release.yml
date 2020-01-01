@@ -1,13 +1,9 @@
-name: Master build
+name: Release build
 
 on:
   push:
-    branches:
-      - master
-    branches-ignore:
-      - "!master"
     tags:
-      - v*
+      - 'v*'
 
 jobs:
 
@@ -85,7 +81,7 @@ jobs:
         run: echo ::set-env name=TAG::$(echo ${GITHUB_REF:10})
 
       - name: Set ARCHIVE
-        run: echo ::set-env name=ARCHIVE::lrsql-${TAG}.zip
+        run: echo ::set-env name=ARCHIVE::lrsql-${TAG}.tgz
 
       - uses: actions/download-artifact@v1.0.0
         with:
@@ -105,14 +101,15 @@ jobs:
       - uses: actions/download-artifact@v1.0.0
         with:
           name: changelog
+          path: .
 
       - name: Pack release
         id: pack-release
-        run: zip -r $ARCHIVE linux macos licenses
+        run: tar czf $ARCHIVE linux macos licenses CHANGELOG.md
 
       - name: Load change log
         id: changelog
-        run: echo "::set-output name=body::$(cat changelog/CHANGELOG.md | sed -e 's/%/%25/g' | sed -e ':begin;$!N;s/\n/%0A/;tbegin')"
+        run: echo "::set-output name=body::$(cat CHANGELOG.md | sed -e 's/%/%25/g' | sed -e ':begin;$!N;s/\n/%0A/;tbegin')"
 
       - name: Create release
         id: create_release
@@ -130,4 +127,4 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ${{ env.ARCHIVE }}
           asset_name: ${{ env.ARCHIVE }}
-          asset_content_type: application/zip
+          asset_content_type: application/tar+gzip
