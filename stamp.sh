@@ -11,7 +11,7 @@ else
     rev="dev"
 fi
 
-if tag=$(git tag) && [ -z "$tag" ]; then
+if tag=$(git tag --contains) && [ -z "$tag" ]; then
     tag=$(date +%F)
 fi
 
