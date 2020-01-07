@@ -1,0 +1,23 @@
+version: '3'
+services:
+    natsserver:
+        image: nats:2-scratch
+    letarette:
+        image: letarette/letarette:0.1.1
+        volumes: 
+            - dbvolume:/db
+        depends_on:
+            - natsserver
+            - lrsql
+    lrsql:
+        build: .
+        depends_on:
+            - natsserver
+        environment:
+            - LOG_LEVEL=debug
+            - LRSQL_DB_DRIVER=sqlite3
+            - LRSQL_DB_CONNECTION=file:/example/recipies.db?mode=ro&immutable=true
+            - LRSQL_SQL_INDEXSQLFILE=/example/indexrequest.sql
+            - LRSQL_SQL_DOCUMENTSQLFILE=/example/documentrequest.sql
+volumes:
+    dbvolume: {}
