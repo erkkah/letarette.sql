@@ -2,6 +2,8 @@
 
 This is probably the smallest example possible of using **letarette.sql** to tie a document database to a Letarette service.
 
+> If you just want to try it out, use the `docker-compose` setup described in the main [README](../README.md).
+
 The document database in this case is a small SQLite database of articles with the following schema:
 
 ```sql
