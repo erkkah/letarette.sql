@@ -21,7 +21,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	logger.Info.Printf("Letarette.sql starting, using %q driver", cfg.Db.Driver)
+	logger.Info.Printf("letarette.sql %s (%s) starting, using %q driver", adapter.Revision, adapter.Tag, cfg.Db.Driver)
 
 	errorHandler := func(err error) {
 		logger.Error.Printf("Adapter error: %v", err)
