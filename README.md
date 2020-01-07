@@ -16,29 +16,34 @@ The following SQL drivers are supported:
 
 ### Getting started
 
+If you just want to try it out, there is a `docker-compose` config that launches a complete little Letarette system, fed by the database and queries from the [example](./example) project.
+
+Simply run `docker-compose up` to start the system.
+
+When the system is up, you can run queries (and other commands) by running the `lrcli` inside the "letarette" container:
+
+```shell
+$ docker-compose exec letarette ./lrcli search -i docs
+search>carrots -celery
+Query executed in 0.000564746 seconds with status "found in index"
+Returning 2 of 2 total hits, capped: false
+
+[135] …and a carrot; boil until soft. When done, take out the…
+[303] …pot, 1 carrot, 1 onion, thyme, bay leaf, salt and pepper, 2 cloves…
+```
+
+### Basic setup
+
 The **letarette.sql** service, `lrsql`, needs to know how to connect to the SQL database, and where to find the queries that provide documents to the **Letarette** indexer.
 
-To make the service connect to a PostgreSQL source, and use default values for the rest of the settings:
-```sh
-export LRSQL_DB_DRIVER="postgres"
-export LRSQL_DB_CONNECTION="postgres://user:password@localhost/testdb?sslmode=verify-full"
-./lrsql
+To make the service connect to a PostgreSQL source, and use default values for the query file locations (`indexrequest.sql` and `documentrequest.sql`):
+```shell
+$ export LRSQL_DB_DRIVER="postgres"
+$ export LRSQL_DB_CONNECTION="postgres://user:password@localhost/testdb?sslmode=verify-full"
+$ ./lrsql
 ```
 
 Running `lrsql` with any command-line argument will print out available settings and their default values.
-
-### Service configuration
-The **letarette.sql** service is configured by environment variables.
-
-|*Variable* |*Type* |*Description* |
-|---|---|---|
-|LRSQL_NATS_URL|String|URL for the NATS service to connect to, defaults to `nats://localhost:4222`.|
-|LRSQL_NATS_TOPIC|String|NATS topic prefix for all messages, defaults to `leta`.|
-|LRSQL_INDEX_SPACE|String|The index space to serve, defaults to `docs`.|
-|LRSQL_DB_DRIVER|String|Database driver name|
-|LRSQL_DB_CONNECTION|String|Database connection string|
-|LRSQL_SQL_INDEXSQLFILE|String|SQL source file for handling index requests. Default: `indexrequest.sql`.|
-|LRSQL_SQL_DOCUMENTSQLFILE|String|SQL source filed for handling document requests. Default: `documentrequest.sql`.|
 
 ### The two queries
 
@@ -81,6 +86,20 @@ The current list of driver build tags is:
 * sqlserver
 
 For example, to build a binary with "postgres" and "mysql" support:
+```shell
+$ go build -tags "postgres,mysql"
 ```
-go build -tags "postgres,mysql"
-```
+
+### Service configuration
+
+The **letarette.sql** service is configured by environment variables.
+
+|*Variable* |*Type* |*Description* |
+|---|---|---|
+|LRSQL_NATS_URL|String|URL for the NATS service to connect to, defaults to `nats://localhost:4222`.|
+|LRSQL_NATS_TOPIC|String|NATS topic prefix for all messages, defaults to `leta`.|
+|LRSQL_INDEX_SPACE|String|The index space to serve, defaults to `docs`.|
+|LRSQL_DB_DRIVER|String|Database driver name|
+|LRSQL_DB_CONNECTION|String|Database connection string|
+|LRSQL_SQL_INDEXSQLFILE|String|SQL source file for handling index requests. Default: `indexrequest.sql`.|
+|LRSQL_SQL_DOCUMENTSQLFILE|String|SQL source filed for handling document requests. Default: `documentrequest.sql`.|
