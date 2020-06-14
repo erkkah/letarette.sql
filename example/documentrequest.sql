@@ -10,4 +10,4 @@ select
 from
     docs
 where
-    id in (?)
+    id in (:wantedIDs)

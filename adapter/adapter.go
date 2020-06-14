@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"regexp"
 	"strings"
 	"time"
 
@@ -25,13 +24,30 @@ type adapter struct {
 	manager            client.DocumentManager
 	db                 *sqlx.DB
 	indexRequestSQL    string
-	indexParamOrder    []int
 	documentRequestSQL string
 	space              string
 }
 
 func (a *adapter) Close() {
 	a.manager.Close()
+}
+
+func stripComments(commented string) string {
+	// Strip comments to avoid name binding getting caught on the url
+	// in the license header and other colon characters.
+
+	lines := strings.Split(string(commented), "\n")
+	uncommented := []string{}
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if strings.HasPrefix(trimmed, "--") {
+			continue
+		}
+		uncommented = append(uncommented, trimmed)
+	}
+	result := strings.Join(uncommented, "\n")
+
+	return result
 }
 
 // New creates an Adapter instance, connected to both NATS
@@ -68,21 +84,13 @@ func New(cfg Config, errorHandler func(error)) (Adapter, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to load index update query file: %w", err)
 	}
-	self.indexRequestSQL = string(bytes)
-
-	bindingOrder, err := extractBindingOrder(self.indexRequestSQL)
-	if err != nil {
-		return nil, err
-	}
-	if len(bindingOrder) != 0 {
-		self.indexParamOrder = bindingOrder
-	}
+	self.indexRequestSQL = stripComments(string(bytes))
 
 	bytes, err = ioutil.ReadFile(cfg.SQL.DocumentSQLFile)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to load document update query file: %w", err)
 	}
-	self.documentRequestSQL = string(bytes)
+	self.documentRequestSQL = stripComments(string(bytes))
 
 	indexHandler := func(ctx context.Context, req protocol.IndexUpdateRequest) (protocol.IndexUpdate, error) {
 		return self.handleIndexRequest(ctx, req)
@@ -98,60 +106,26 @@ func New(cfg Config, errorHandler func(error)) (Adapter, error) {
 	return self, nil
 }
 
-var matchBinding = regexp.MustCompile(`@\[([\w,\s]+)\]`)
-
-func extractBindingOrder(query string) ([]int, error) {
-	lines := strings.Split(query, "\n")
-
-	order := [3]int{}
-
-	for _, line := range lines {
-		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, "---") {
-			match := matchBinding.FindStringSubmatch(line)
-			if match != nil && len(match) == 1 {
-				paramOrder := strings.Split(match[0], ",")
-				if len(paramOrder) != 3 {
-					return []int{}, fmt.Errorf("Invalid number of bind parameters: %v", line)
-				}
-				for index, param := range paramOrder {
-					switch param {
-					case "afterDocument":
-						order[index] = 0
-					case "fromTimeNanos":
-						order[index] = 1
-					case "documentLimit":
-						order[index] = 2
-					default:
-						return []int{}, fmt.Errorf("Invalid bind statement: %v", line)
-					}
-				}
-				return order[:], nil
-			}
-		}
-	}
-
-	return []int{0, 1, 2}, nil
-}
-
 func (a *adapter) handleIndexRequest(ctx context.Context, req protocol.IndexUpdateRequest) (protocol.IndexUpdate, error) {
 	if req.Space != a.space {
 		return protocol.IndexUpdate{}, nil
 	}
 
-	params := []interface{}{
-		req.AfterDocument, req.FromTime.UnixNano(), req.Limit,
+	params := struct {
+		AfterDocument string `db:"afterDocument"`
+		FromTimeNanos int64  `db:"fromTimeNanos"`
+		DocumentLimit uint16 `db:"documentLimit"`
+	}{
+		string(req.AfterDocument), req.FromTime.UnixNano(), req.Limit,
 	}
 
 	// select id, updated
-	rows, err := a.db.QueryxContext(ctx,
+	rows, err := a.db.NamedQueryContext(ctx,
 		a.indexRequestSQL,
-		params[a.indexParamOrder[0]],
-		params[a.indexParamOrder[1]],
-		params[a.indexParamOrder[2]],
+		params,
 	)
 	if err != nil {
-		return protocol.IndexUpdate{}, fmt.Errorf("Failed to query DB: %w", err)
+		return protocol.IndexUpdate{}, fmt.Errorf("Failed to execute index query: %w", err)
 	}
 
 	result := protocol.IndexUpdate{
@@ -181,12 +155,24 @@ func (a *adapter) handleDocumentRequest(ctx context.Context, req protocol.Docume
 		return protocol.DocumentUpdate{}, nil
 	}
 
+	arg := struct {
+		WantedIDs []protocol.DocumentID `db:"wantedIDs"`
+	}{
+		req.Wanted,
+	}
+
 	// select id, updated, title, text, alive
-	expanded, args, err := sqlx.In(a.documentRequestSQL, req.Wanted)
+	expanded, args, err := sqlx.Named(a.documentRequestSQL, arg)
+	if err != nil {
+		return protocol.DocumentUpdate{}, fmt.Errorf(`Failed to expand named parameters: %w`, err)
+	}
+
+	expanded, args, err = sqlx.In(expanded, args...)
 	if err != nil {
 		return protocol.DocumentUpdate{}, fmt.Errorf(`Failed to expand "in" statement: %w`, err)
 	}
 
+	expanded = a.db.Rebind(expanded)
 	rows, err := a.db.QueryxContext(ctx, expanded, args...)
 	if err != nil {
 		return protocol.DocumentUpdate{}, fmt.Errorf("Failed to query DB: %w", err)

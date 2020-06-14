@@ -3,7 +3,7 @@
 
 ## letarette.sql - SQL-based Letarette Document Manager
 
-This is an all-SQL Document Manager for the Letarette full-text search thingy.
+This is an all-SQL Document Manager for [Letarette][https://letarette.io].
 To connect a SQL-based primary document storage to Letarette, only two queries need to be supplied.
 Check the [example](./example) to see how basic they can be, given that the primary storage has a similar structure.
 
@@ -56,22 +56,14 @@ Timestamps are UTC - referenced UNIX epoch nanoseconds.
 The current index position is a combination of a document ID and the *updated timestamp* of that document.
 To handle the situation where the index position document has been updated since it was last fetched, *index request* queries need to follow a strict document ordering. This is best handled by sorting primarily on *update timestamp* and secondarily on *document ID* and handling the case where the *update timestamp* is unchanged separately. See [indexrequest.sql](example/indexrequest.sql) from the example project.
 
-The index request query gets three bound parameters: `afterDocument` (string), `fromTimeNanos` (int64) and `documentLimit` (int) and should return rows of two columns: `id` (string) and `updatedNanos` (int64). The order of the bound parameters can optionally be changed by adding a special `@bind` comment:
-
+The index request query gets three bound parameters: `afterDocument` (string), `fromTimeNanos` (int64) and `documentLimit` (uint16) and should return rows of two columns: `id` (string) and `updatedNanos` (int64). The bounds parameters are referred to by prefixing them with a colon:
 ```sql
----
---- My index request query.
----
---- Bind order:
---- @bind[documentLimit, afterDocument, fromTimeNanos]
----
+where :afterDocument > 2
 ```
-
-> Note that the parameters are not bound by name. The `@bind` directive just specifies the order of the parameters for drivers that have generic `?` - type parameter binding.
 
 #### Document requests
 
-Implementing the *document request* is even easier, since this only needs to retrieve all documents for a list of document IDs: [documentrequest.sql](example/documentrequest.sql). The single bound parameter will be replaced with a list of document IDs (string).
+Implementing the *document request* is even easier, since this only needs to retrieve all documents for a list of document IDs: [documentrequest.sql](example/documentrequest.sql). The single bound parameter `wantedIDs` will be replaced with a list of document IDs (string).
 
 The document request query should return rows of `id` (string), `updatedNanos` (int64), `title` (string), `txt` (string) and `alive` (bool).
 
