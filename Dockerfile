@@ -1,4 +1,4 @@
-FROM golang:1.13-alpine as builder
+FROM golang:1.16-alpine as builder
 
 RUN apk update && apk add --no-cache sqlite-dev make gcc libc-dev tzdata git bash
 RUN adduser -D -g '' letarette
@@ -13,7 +13,7 @@ FROM scratch
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /bin/sh /bin/sh
-COPY --from=builder /lib/ld-musl-x86_64.so.1 /lib/ld-musl-x86_64.so.1
+COPY --from=builder /lib/ld-musl* /lib/
 
 COPY --from=builder /go/src/app/recipies.db /example/
 COPY example/*.sql /example/
