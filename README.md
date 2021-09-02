@@ -3,7 +3,7 @@
 
 ## letarette.sql - SQL-based Letarette Document Manager
 
-This is an all-SQL Document Manager for [Letarette][https://letarette.io].
+This is an all-SQL Document Manager for [Letarette](https://letarette.io).
 To connect a SQL-based primary document storage to Letarette, only two queries need to be supplied.
 Check the [example](./example) to see how basic they can be, given that the primary storage has a similar structure.
 
