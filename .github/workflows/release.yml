@@ -32,7 +32,7 @@ jobs:
         restore-keys: ${{ runner.os }}-go-
 
     - name: Get GOCACHE
-      run: go env | grep GOCACHE >> $GITHUB_ENV
+      run: echo GOCACHE=`go env GOCACHE` >> $GITHUB_ENV
       shell: bash
     
     - name: Cache go build cache
