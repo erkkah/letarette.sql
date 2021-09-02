@@ -80,10 +80,10 @@ jobs:
 
     steps:
       - name: Set TAG
-        run: echo ::set-env name=TAG::$(echo ${GITHUB_REF:10})
+        run: echo TAG=${GITHUB_REF:10} >> $GITHUB_ENV
 
       - name: Set ARCHIVE
-        run: echo ::set-env name=ARCHIVE::lrsql-${TAG}.tgz
+        run: echo ARCHIVE=lrsql-${TAG}.tgz >> $GITHUB_ENV
 
       - uses: actions/download-artifact@v1.0.0
         with:
