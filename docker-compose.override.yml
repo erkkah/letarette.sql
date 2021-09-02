@@ -1,0 +1,8 @@
+version: '3'
+services:
+    lrsql:
+        build: .
+        depends_on:
+            - natsserver
+        environment:
+            - LOG_LEVEL=debug
