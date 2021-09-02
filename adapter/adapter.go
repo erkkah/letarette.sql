@@ -111,6 +111,8 @@ func (a *adapter) handleIndexRequest(ctx context.Context, req protocol.IndexUpda
 		return protocol.IndexUpdate{}, nil
 	}
 
+	logger.Debug.Printf("Index req: [%v]@%v\n", req, req.FromTime.UnixNano())
+
 	params := struct {
 		AfterDocument string `db:"afterDocument"`
 		FromTimeNanos int64  `db:"fromTimeNanos"`
@@ -118,6 +120,8 @@ func (a *adapter) handleIndexRequest(ctx context.Context, req protocol.IndexUpda
 	}{
 		string(req.AfterDocument), req.FromTime.UnixNano(), req.Limit,
 	}
+
+	start := time.Now()
 
 	// select id, updated
 	rows, err := a.db.NamedQueryContext(ctx,
@@ -127,6 +131,10 @@ func (a *adapter) handleIndexRequest(ctx context.Context, req protocol.IndexUpda
 	if err != nil {
 		return protocol.IndexUpdate{}, fmt.Errorf("Failed to execute index query: %w", err)
 	}
+
+	duration := time.Since(start)
+
+	logger.Debug.Printf("Index query took %v\n", duration)
 
 	result := protocol.IndexUpdate{
 		Space: a.space,
@@ -146,7 +154,11 @@ func (a *adapter) handleIndexRequest(ctx context.Context, req protocol.IndexUpda
 		})
 	}
 
-	logger.Debug.Printf("Returning %d updates to indexer", len(result.Updates))
+	if len(result.Updates) > 0 {
+		first := result.Updates[0].Updated
+		last := result.Updates[len(result.Updates)-1].Updated
+		logger.Debug.Printf("Returning %d updates (%v - %v) to indexer", len(result.Updates), first, last)
+	}
 	return result, nil
 }
 
