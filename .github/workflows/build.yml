@@ -16,31 +16,12 @@ jobs:
     steps:
 
     - name: Set up Go
-      uses: actions/setup-go@v1
+      uses: actions/setup-go@v6
       with:
-        go-version: 1.16
-      id: go
+        go-version: 1.24
 
     - name: Check out code
-      uses: actions/checkout@v3
-
-    - name: Cache go modules
-      uses: actions/cache@v1
-      with:
-        path: ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('go.sum') }}
-        restore-keys: ${{ runner.os }}-go-
-
-    - name: Get GOCACHE
-      run: echo GOCACHE=`go env GOCACHE` >> $GITHUB_ENV
-      shell: bash
-    
-    - name: Cache go build cache
-      uses: actions/cache@v1
-      with:
-        path: ${{ env.GOCACHE }}
-        key: ${{ runner.os }}-gocache-${{ hashFiles('go.sum') }}
-        restore-keys: ${{ runner.os }}-gocache-
+      uses: actions/checkout@v6
 
     - name: Build
       run: ./build.sh
